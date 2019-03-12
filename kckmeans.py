@@ -14,8 +14,10 @@ def kernelConstrainedKmeans(kernel, assignation, constraints, max_iteration = 10
         
         Keyword Arguments:
             max_iteration {int} -- Maximum iteration (default: {100})
-            threshold_certainty {negative float} -- Level under which we consider to break 
-                    a cannot link cosntraint (default: {0} Any negative constraint is considered)
+            threshold_certainty {float} -- Level under which we consider to break 
+                    a cannot link constraint (take negative value of it)
+                    a must link (take positive)
+                    (default: {0} Any constraint is considered)
         
         Returns:
             Assignation - Array n
@@ -40,7 +42,10 @@ def kernelConstrainedKmeans(kernel, assignation, constraints, max_iteration = 10
             previous = assignation[i]
 
             # Computes possible cluster for the point that does not break any constraint
-            possibleClusters = [c for c in clusters if c not in np.unique(assignation[constraints[i, :] < threshold_certainty])]
+            possibleClusters = [c for c in clusters if 
+                                (c not in np.unique(assignation[constraints[i, :] < -threshold_certainty])) and # Cannot link constraint
+                                ((c in np.unique(assignation[constraints[i, :] > threshold_certainty])) or      # Must link constraint
+                                 (len(assignation[constraints[i, :] > threshold_certainty]) == 0))]             # In case no constraint
 
             distance = {k: float(base_distance[k]) for k in possibleClusters}
             for k in possibleClusters:
