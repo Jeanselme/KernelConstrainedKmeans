@@ -3,11 +3,11 @@ Simple implementation of a kernel ckmeans
 
 ## Project
 ### Initialization
-Contains a farthest first initialization from the heuristic proposed in ((https://arxiv.org/pdf/cs/0610043.pdf)[Farthest-Point Heuristic based Initialization Methods for K-Modes Clustering] adapted for a kernel metric.
+Contains a farthest first initialization from the heuristic proposed in [Farthest-Point Heuristic based Initialization Methods for K-Modes Clustering](https://arxiv.org/pdf/cs/0610043.pdf) adapted for a kernel metric.
 
 ### Kckmeans
 Kernel constrained kmeans which takes the initial assignation and returns the best assignation repecting the constrained.  
-This idea is inspired by [https://pdfs.semanticscholar.org/0bac/ca0993a3f51649a6bb8dbb093fc8d8481ad4.pdf](Constrained K-means Clusetering with Background Knowledge) with a kernel instead of an euclidean distance. The code has been optimized to not recompute the whole distance but just the impact of moving one point from one cluster to another.
+This idea is inspired by [Constrained K-means Clusetering with Background Knowledge](https://pdfs.semanticscholar.org/0bac/ca0993a3f51649a6bb8dbb093fc8d8481ad4.pdf) with a kernel instead of an euclidean distance. The code has been optimized to not recompute the whole distance but just the impact of moving one point from one cluster to another.
 
 ## Remarks
 ### Constraints
@@ -24,5 +24,4 @@ Code tested with python 3.5 with numpy and scipy.
 Sklearn and matplotlib necessary for the example.
 
 ## Example
-A simple example is given in the notebook `Example.ipynb` which explore the constraint clustering with an rbf kernel on [http://yann.lecun.com/exdb/mnist/](MNIST) dataset.
-
+A simple example is given in the notebook `Example.ipynb` which explore the constraint clustering with an rbf kernel on (http://yann.lecun.com/exdb/mnist/[MNIST] dataset.
