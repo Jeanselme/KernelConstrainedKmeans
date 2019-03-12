@@ -24,4 +24,4 @@ Code tested with python 3.5 with numpy and scipy.
 Sklearn and matplotlib necessary for the example.
 
 ## Example
-A simple example is given in the notebook `Example.ipynb` which explore the constraint clustering with an rbf kernel on (http://yann.lecun.com/exdb/mnist/[MNIST] dataset.
+A simple example is given in the notebook `Example.ipynb` which explore the constraint clustering with an rbf kernel on (http://yann.lecun.com/exdb/mnist/)[MNIST] dataset.
