@@ -3,7 +3,7 @@
 """
 import numpy as np
 
-def kernelConstrainedKmeans(kernel, assignation, constraints, max_iteration = 100, threshold_certainty = 0):
+def weightedKernelConstrainedKmeans(kernel, assignation, constraints, weights = None, max_iteration = 100, threshold_certainty = 0):
     """
         Compute kernel constrained kmeans
         
@@ -13,6 +13,7 @@ def kernelConstrainedKmeans(kernel, assignation, constraints, max_iteration = 10
             constraints {Array n*n} -- Constraints matrix with value between -1 and 1
         
         Keyword Arguments:
+            weights {Array n} -- Initial Weights for the different points (default: {None} -- Equal weights)
             max_iteration {int} -- Maximum iteration (default: {100})
             threshold_certainty {float} -- Level under which we consider to break 
                     a cannot link constraint (take negative value of it)
@@ -27,13 +28,16 @@ def kernelConstrainedKmeans(kernel, assignation, constraints, max_iteration = 10
     clusters = np.unique(assignation)
     iteration, change = 0, True
 
+    if weights is None:
+        weights = np.ones_like(assignation)
+
     while change and iteration < max_iteration:
         change, approx_error = False, 0.
         np.random.shuffle(index)
 
         # Update cluster centers
         for k in clusters:
-            assignation_cluster[k] = (assignation == k).reshape((-1,1))
+            assignation_cluster[k] = np.multiply((assignation == k), weights).reshape((-1,1))
             intra_distance[k] = np.matmul(kernel, assignation_cluster[k])
             number[k] = np.sum(assignation_cluster[k])
             base_distance[k] = np.dot(assignation_cluster[k].T, intra_distance[k])/(number[k]**2)
