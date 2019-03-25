@@ -33,7 +33,7 @@ def weightedKernelConstrainedKmeans(kernel, assignation, constraints = None, wei
         weights = np.ones_like(assignation)
 
     while change and iteration < max_iteration:
-        change, approx_error = False, 0.
+        change = False
         np.random.shuffle(index)
 
         # Update cluster centers
@@ -55,18 +55,16 @@ def weightedKernelConstrainedKmeans(kernel, assignation, constraints = None, wei
                                     ((c in np.unique(assignation[constraints[i, :] > threshold_certainty])) or      # Must link constraint
                                     (len(assignation[constraints[i, :] > threshold_certainty]) == 0))]             # In case no constraint
 
+                assert len(possibleClusters) > 0, "No cluster respecting constraint"
+
             distance = {k: float(base_distance[k]) for k in possibleClusters}
             for k in possibleClusters:
                 # Only this term implies a change if center unupdated
                 distance[k] += kernel[i,i] - 2*intra_distance[k][i]/number[k]
-                assignation[i] = k
-
-            assert len(possibleClusters) > 0, "No cluster respecting constraint"
 
             assignation[i] = min(distance, key=lambda d: float(distance[d]))
             if previous != assignation[i]:
                 change = True
-            approx_error += float(distance[assignation[i]])
 
         iteration += 1
 
