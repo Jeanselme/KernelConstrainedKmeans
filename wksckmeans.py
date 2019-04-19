@@ -57,7 +57,7 @@ def weightedKernelSoftConstrainedKmeans(kernel, assignation, constraints = None,
                     distance[k] += kernel[i,i] - 2*intra_distance[k][i]/number[k]
 
                     # Also add the penalty of putting this points in this cluster
-                    if constraints is not None:
+                    if constraints is not None and np.count_nonzero(constraints[i]):
                         # Computes broken constraints
                         assignation_cluster = np.multiply((assignation == k), weights).reshape((-1,1))
                         not_assigned_cluster = np.multiply((assignation != k), weights).reshape((-1,1))
@@ -65,13 +65,15 @@ def weightedKernelSoftConstrainedKmeans(kernel, assignation, constraints = None,
                         broken_cannot_link = np.multiply(assignation_cluster.T, constraints[i] < -threshold_certainty)
 
                         # Computes penalty
-                        penalty_ml = np.dot(broken_must_link, kernel.diagonal()) \
-                            - 2 * np.dot(broken_must_link, kernel[i, :]) \
-                            + np.sum(broken_must_link) * kernel[i,i]
-                        penalty_cl = np.sum(broken_cannot_link) * max_distance \
-                            - np.dot(broken_cannot_link, kernel.diagonal()) \
-                            + 2 * np.dot(broken_cannot_link, kernel[i, :]) \
-                            - np.sum(broken_cannot_link) * kernel[i,i]
+                        ## Allow to break ML if far away
+                        ## Allow to break CL if really close
+                        penalty_ml = np.sum(broken_cannot_link) * max_distance \
+                            - np.dot(broken_must_link, kernel.diagonal()) \
+                            + 2 * np.dot(broken_must_link, kernel[i, :]) \
+                            - np.sum(broken_must_link) * kernel[i,i]
+                        penalty_cl = np.dot(broken_cannot_link, kernel.diagonal()) \
+                            - 2 * np.dot(broken_cannot_link, kernel[i, :]) \
+                            + np.sum(broken_cannot_link) * kernel[i,i]
 
                         distance[k] += penalty * (penalty_cl + penalty_ml)
 
