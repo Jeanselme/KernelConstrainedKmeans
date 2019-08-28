@@ -98,7 +98,11 @@ class Initialization:
                 for c in match}
 
             ## Closest verifying constraint
-            closest = min(distance.keys(), key = lambda k: distance[k])
+            order = sorted(distance.keys(), key = lambda k: distance[k])
+
+            ## If no constraint is positive => Too much constraint
+            broken_constraint = self.constraint.dense()[:, assignation_cluster[i].flatten()]
+            closest = min(order, key=lambda o: np.sum(broken_constraint[(assignations == o),:] < 0))
             assignations[assignation_cluster[i].flatten()] = match[closest]
 
             ## Update assignation closest
@@ -180,11 +184,12 @@ class Euclidean_Initialization(Initialization):
                 for c in match}
 
             ## Closest verifying constraint
+            # TODO: Verify constraint
             closest = min(distance.keys(), key = lambda k: distance[k])
             assignations[assignation_cluster[i].flatten()] = match[closest]
 
             ## Update assignation closest
-            assignation_cluster[closest] += assignation_cluster[i]
-            center_cluster[closest] = data[assignation_cluster[closest]].mean(0)
+            assignation_cluster[closest] = assignation_cluster[closest] + assignation_cluster[i]
+            center_cluster[closest] = data[assignation_cluster[closest].flatten()].mean(0)
 
         return assignations
