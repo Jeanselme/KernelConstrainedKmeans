@@ -23,12 +23,7 @@ class Initialization:
         assert constraint is not None, "Farthest initialization cannot be used with no constraint"
 
         # Computes the most important components and order by importance
-        rows, columns, values =  find(constraint)
-        selection = values > 0
-        rows, columns, values = rows[selection], columns[selection], values[selection]
-        positive = coo_matrix((values, (rows, columns)), shape = constraint.shape)
-
-        self.number, components = connected_components(positive, directed=False)
+        self.number, components = connected_components(constraint > 0, directed=False)
         unique, count = np.unique(components, return_counts = True)
         order = np.argsort(count)[::-1]
         self.components = np.argsort(unique[order])[components]
@@ -187,3 +182,56 @@ class Euclidean_Initialization(Initialization):
             center_cluster[closest] = data[assignation_cluster[closest].flatten()].mean(0)
 
         return assignations
+
+class InitializationScale:
+    """
+        Farthest first initialization with precomputation of connected components
+    """
+
+    def __init__(self, k, constraintmatrix):
+        """
+            Precompute connected components
+            Arguments:
+                k {int} -- Number of cluster
+                constraintmatrix {sparse matrix  n * n} -- Constraint matrix with value in (-1, 1)
+                    Positive values are must link constraints
+                    Negative values are must not link constraints
+        """
+        assert constraintmatrix is not None, "Farthest initialization cannot be used with no constraint"
+        # Computes the most important components and order by importance
+        number, components = connected_components(constraintmatrix > 0, directed=False)
+        assert number >= k, "Constraint too noisy"
+        self.k = k
+        bincount = np.bincount(components)
+        largest = bincount.argmax()
+        self.components = components
+        print('components: %d'%len(components))
+        self.components_subset = np.where(bincount>1)[0]
+
+        if len(self.components_subset):
+            print("Constraints do not allow to find enough connected components for farthest first ({} for {} classes) => Random forced".format(len(self.components_subset), k))
+            self.farthest_initialization = lambda x: None
+        self.largestidx = np.where(self.components_subset==largest)[0][0]
+
+    def farthest_initialization(self, X):
+        """
+            Farthest points that verify constraint
+            Arguments:
+                X {Array n * d} -- data
+        """
+        centers = np.vstack([X[self.components==i].mean(0) for i in self.components_subset])
+        distances = np.linalg.norm(centers[self.largestidx]-centers,axis =1)
+        farthest = np.argmax(distances)
+        clusters = set([self.largestidx,farthest])
+        for i in range(2,self.k):
+            distances = np.zeros(len(centers))
+            for j in clusters:
+                distances += np.linalg.norm(centers[j]-centers,axis =1)
+            for farthest in np.argsort(-distances):
+                if not farthest in clusters:
+                    clusters.add(farthest)
+                    break
+
+        cluster_centers = [X[self.components==self.components_subset[i]].mean(0) for i in clusters]
+
+        return np.vstack(cluster_centers)
