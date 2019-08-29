@@ -3,7 +3,7 @@
     to initialize the cluster assigment at the start
 """
 import numpy as np
-from scipy.sparse import find, coo_matrix
+from scipy.sparse import find, coo_matrix, issparse
 from scipy.sparse.csgraph import connected_components
 
 class Initialization:
@@ -90,6 +90,10 @@ class Initialization:
             remaining.remove(farthest)
 
         # Assign each unassigned components
+        constraint = self.constraint
+        if issparse(constraint):
+            constraint = constraint.todense()
+
         for i in remaining:
             ## Computes distances to all other cluster 
             ## We ignore the last part which depends on the intravariance of the cluster i
@@ -101,7 +105,7 @@ class Initialization:
             order = sorted(distance.keys(), key = lambda k: distance[k])
 
             ## If no constraint is positive => Too much constraint
-            broken_constraint = self.constraint.dense()[:, assignation_cluster[i].flatten()]
+            broken_constraint = constraint[:, assignation_cluster[i].flatten()]
             closest = min(order, key=lambda o: np.sum(broken_constraint[(assignations == o),:] < 0))
             assignations[assignation_cluster[i].flatten()] = match[closest]
 
