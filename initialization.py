@@ -120,20 +120,6 @@ class Initialization:
 
 class Euclidean_Initialization(Initialization):
 
-    @classmethod
-    def compute_center(cls, data, assignation):
-        """
-            Computes euclidean centers given an assignation
-            
-            Arguments:
-                data {[type]} -- [description]
-                assignation {[type]} -- [description]
-        """
-        centers = []
-        for i in np.unique(assignation):
-            centers.append(data[assignation == i].mean(0))
-        return np.vstack(centers)
-
     def farthest_initialization(self, data):
         """
             Farthest points that verifies constraint
@@ -159,7 +145,7 @@ class Euclidean_Initialization(Initialization):
         remaining = set(range(1, self.number))
 
         ## Compute iteratively the farthest given all other
-        match = {}
+        match, centers = {}, [center_cluster[0]]
         for i in range(1, self.k):
             # Computes distances to all remaining NON TRIVIAL connected components
             # We ignore the last part which depends on the intravariance of the past clusters
@@ -175,6 +161,10 @@ class Euclidean_Initialization(Initialization):
 
             # Remove components
             remaining.remove(farthest)
+            centers.append(center_cluster[farthest])
+
+        # Save centers if no assignation needed
+        self.centers = centers
 
         # Assign each unassigned components
         for i in remaining:
