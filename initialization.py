@@ -168,7 +168,7 @@ class Euclidean_Initialization(Initialization):
             centers.append(center_cluster[farthest])
 
         # Save centers if no assignation needed
-        self.centers = centers
+        self.centers = np.vstack(centers)
 
         # Assign each unassigned components
         for i in remaining:
