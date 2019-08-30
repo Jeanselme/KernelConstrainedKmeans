@@ -208,7 +208,7 @@ class InitializationScale:
         print('components: %d'%len(components))
         self.components_subset = np.where(bincount>1)[0]
 
-        if len(self.components_subset):
+        if len(self.components_subset) < k:
             print("Constraints do not allow to find enough connected components for farthest first ({} for {} classes) => Random forced".format(len(self.components_subset), k))
             self.farthest_initialization = lambda x: None
         self.largestidx = np.where(self.components_subset==largest)[0][0]
