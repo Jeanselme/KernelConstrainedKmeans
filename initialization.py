@@ -205,7 +205,6 @@ class InitializationScale:
         bincount = np.bincount(components)
         largest = bincount.argmax()
         self.components = components
-        print('components: %d'%len(components))
         self.components_subset = np.where(bincount>1)[0]
 
         if len(self.components_subset) < k:
