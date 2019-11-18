@@ -32,7 +32,7 @@ class Initialization:
 
         if (count > 1).sum() < k:
             print("Constraints do not allow to find enough connected components for farthest first ({} for {} classes) => Random forced".format((count > 1).sum(), k))
-            self.farthest_initialization = lambda x: None
+            self.farthest_initialization = lambda x: self.random_initialization()
 
         self.k = k
 
