@@ -129,6 +129,11 @@ class Initialization:
             intra_distance[c] = np.matmul(kernel, assignation_cluster[c])
             intra_number[c] = np.sum(assignation_cluster[c])
 
+        # Assign each unassigned components
+        constraint = self.constraint
+        if issparse(constraint):
+            constraint = constraint.todense()
+
         # Merge components respecting constraint until # = k
         for i in range(self.k, self.number):
             # Computes intra distance
@@ -146,7 +151,7 @@ class Initialization:
             order = np.argsort(distance)
 
             # If no constraint is positive => Too much constraint
-            broken_constraint = self.constraint[:, assignation_cluster[i].flatten()]
+            broken_constraint = constraint[:, assignation_cluster[i].flatten()]
             closest = min(order, key=lambda o: np.sum(broken_constraint[(components == o),:] < 0))
             components[assignation_cluster[i].flatten()] = closest
 
