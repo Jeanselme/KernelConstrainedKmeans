@@ -29,7 +29,6 @@ def weightedKernelSoftConstrainedKmeans(kernel, assignation, constraints = None,
     intra_distance, number, base_distance = {}, {}, {}
     index = np.arange(len(assignation))
     clusters = np.unique(assignation)
-    iteration, change = 0, True
 
     if weights is None:
         weights = np.ones_like(assignation)
@@ -37,6 +36,7 @@ def weightedKernelSoftConstrainedKmeans(kernel, assignation, constraints = None,
     max_distance = np.max([kernel[i, i] + kernel[j, j] - 2 * kernel[i, j] for i in index for j in index[:i]])
 
     for _ in range(max_iteration):
+        iteration, change = 0, True
         # Update cluster centers
         for k in clusters:
             assignation_cluster = np.multiply((assignation == k), weights).reshape((-1,1))
@@ -47,6 +47,7 @@ def weightedKernelSoftConstrainedKmeans(kernel, assignation, constraints = None,
         assignation_previous = assignation.copy()
         # Double loop : centers are fixed but assignation is updated to compute broken constraints
         while change and iteration < max_iteration:
+            change = False
             np.random.shuffle(index)
             for i in index:
                 previous = assignation[i]
