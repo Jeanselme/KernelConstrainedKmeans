@@ -76,7 +76,7 @@ def weightedKernelSoftConstrainedKmeans(kernel, assignation, constraints = None,
                             - 2 * np.dot(broken_cannot_link, kernel[i, :]) \
                             + np.sum(broken_cannot_link) * kernel[i,i]
 
-                        distance[k] += penalty * (penalty_cl + penalty_ml)
+                        distance[k] += penalty * float(penalty_cl + penalty_ml)
 
                 assignation[i] = min(distance, key=lambda d: float(distance[d]))
                 if previous != assignation[i]:
