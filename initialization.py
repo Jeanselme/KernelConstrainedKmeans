@@ -54,6 +54,7 @@ class Initialization:
             intra_number[c] = np.sum(assignation_cluster[c])
 
         ## First assignation is the largest component
+        match = {0: 0}
         assignations[assignation_cluster[0].flatten()] = 0
 
         ## Save characteristics of assigned components
@@ -64,7 +65,6 @@ class Initialization:
         remaining = set(range(1, self.number))
 
         ## Compute iteratively the farthest given all other
-        match = {}
         for i in range(1, self.k):
             # Computes distances to all remaining NON TRIVIAL connected components
             # We ignore the last part which depends on the intravariance of the past clusters
