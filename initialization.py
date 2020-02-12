@@ -124,7 +124,7 @@ class Initialization:
 
         # Precompute center distances
         assignation_cluster, intra_distance, intra_number = {}, {}, {}
-        for c in range(self.k):
+        for c in range(self.number):
             assignation_cluster[c] = (components == c).reshape((-1,1))
             intra_distance[c] = np.matmul(kernel, assignation_cluster[c])
             intra_number[c] = np.sum(assignation_cluster[c])
@@ -136,11 +136,6 @@ class Initialization:
 
         # Merge components respecting constraint until # = k
         for i in range(self.k, self.number):
-            # Computes intra distance
-            assignation_cluster[i] = (components == i).reshape((-1,1))
-            intra_distance[i] = np.matmul(kernel, assignation_cluster[i])
-            intra_number[i] = np.sum(assignation_cluster[i])
-
             # Computes distances to all other cluster 
             # We ignore the last part which depends on the intravariance of the cluster i
             distance = [float(np.dot(assignation_cluster[c].T, intra_distance[c])/(intra_number[c]**2) 
