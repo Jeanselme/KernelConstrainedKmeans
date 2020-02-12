@@ -52,13 +52,11 @@ def weightedKernelSoftConstrainedKmeans(kernel, assignation, constraints = None,
             for i in index:
                 previous = assignation[i]
 
-                distance = {k: float(base_distance[k]) for k in clusters}
-                for k in clusters:
-                    # Only this term implies a change if center unupdated
-                    distance[k] += kernel[i,i] - 2*intra_distance[k][i]/number[k]
-
-                    # Also add the penalty of putting this points in this cluster
-                    if constraints is not None and np.count_nonzero(constraints[i]):
+                distance = {k: float(base_distance[k] - 2*intra_distance[k][i]/number[k]) for k in clusters}
+                if constraints is not None and np.count_nonzero(constraints[i]):
+                    for k in clusters:
+                        # Also add the penalty of putting this points in this cluster
+                    
                         # Computes broken constraints
                         assignation_cluster = np.multiply((assignation == k), weights).reshape((-1,1))
                         not_assigned_cluster = np.multiply((assignation != k), weights).reshape((-1,1))

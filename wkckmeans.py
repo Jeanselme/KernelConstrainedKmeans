@@ -57,11 +57,7 @@ def weightedKernelConstrainedKmeans(kernel, assignation, constraints = None, wei
 
                 assert len(possibleClusters) > 0, "No cluster respecting constraint"
 
-            distance = {k: float(base_distance[k]) for k in possibleClusters}
-            for k in possibleClusters:
-                # Only this term implies a change if center unupdated
-                distance[k] += kernel[i,i] - 2*intra_distance[k][i]/number[k]
-
+            distance = {k: float(base_distance[k]) - 2*intra_distance[k][i]/number[k] for k in possibleClusters}
             assignation[i] = min(distance, key=lambda d: float(distance[d]))
             if previous != assignation[i]:
                 change = True
