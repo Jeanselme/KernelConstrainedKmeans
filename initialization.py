@@ -30,10 +30,6 @@ class Initialization:
         self.constraint = constraint
         assert self.number >= k, "Constraint too important for number of cluster"
 
-        if (count > 1).sum() < k:
-            print("Constraints do not allow to find enough connected components for farthest first ({} for {} classes) => Approximation".format((count > 1).sum(), k))
-            self.farthest_initialization = lambda x: self.back_up(x)
-
         self.k = k
 
     def farthest_initialization(self, kernel):
@@ -57,29 +53,19 @@ class Initialization:
         match = {0: 0}
         assignations[assignation_cluster[0].flatten()] = 0
 
-        ## Save characteristics of assigned components
-        assigned = (assignations == 0).reshape((-1,1))
-        assigned_intra_distance = np.matmul(kernel, assigned)
-        assigned_intra_number = np.sum(assigned)
-
         remaining = set(range(1, self.number))
 
         ## Compute iteratively the farthest given all other
         for i in range(1, self.k):
             # Computes distances to all remaining NON TRIVIAL connected components
-            # We ignore the last part which depends on the intravariance of the past clusters
-            distance = {c: float(np.dot(assignation_cluster[c].T, intra_distance[c])/(intra_number[c]**2) 
-                - 2 * np.dot(assigned.T, intra_distance[c])/(intra_number[c] * assigned_intra_number))
+            distance = {c: np.sum([float(np.dot(assignation_cluster[c].T, intra_distance[c])/(intra_number[c]**2))
+                    - 2 * np.dot(assignation_cluster[m].T, intra_distance[c])/(intra_number[c] * intra_distance[m])
+                    for m in match])
                 for c in remaining if intra_number[c] > 1}
 
             farthest = max(distance, key = lambda x: distance[x])
             assignations[assignation_cluster[farthest].flatten()] = i
             match[farthest] = i
-
-            # Update characteristics of assigned
-            assigned += assignation_cluster[farthest]
-            assigned_intra_distance += intra_distance[farthest]
-            assigned_intra_number += intra_number[farthest]
 
             # Remove components
             remaining.remove(farthest)
@@ -92,8 +78,8 @@ class Initialization:
         for i in remaining:
             ## Computes distances to all other cluster 
             ## We ignore the last part which depends on the intravariance of the cluster i
-            distance = {c: float(np.dot(assignation_cluster[c].T, intra_distance[c])/(intra_number[c]**2) 
-                - 2 * np.dot(assignation_cluster[i].T, intra_distance[c])/(intra_number[c] * intra_number[i]))
+            distance = {c: float(np.dot(assignation_cluster[c].T, intra_distance[c])/(intra_number[c]**2))
+                - 2 * np.dot(assignation_cluster[i].T, intra_distance[c])/(intra_number[c] * intra_number[i])
                 for c in match}
 
             ## Closest verifying constraint
@@ -104,58 +90,7 @@ class Initialization:
             closest = min(order, key=lambda o: np.sum(broken_constraint[(assignations == o),:] < 0))
             assignations[assignation_cluster[i].flatten()] = match[closest]
 
-            ## Update assignation closest
-            assignation_cluster[closest] += assignation_cluster[i]
-            intra_distance[closest] += intra_distance[i]
-            intra_number[closest] += intra_number[i]
-
         return assignations
-
-    def back_up(self, kernel):
-        """
-            Farthest points that verify constraint
-            Withour constraint on non trivial cluster
-            Arguments:
-                kernel {Array n * n} -- Kernel matrix (n * n)
-                k {Int} --  Number cluster
-                constraint {Array n * n} -- Constraint matrix
-        """
-        components = self.components.copy()
-
-        # Precompute center distances
-        assignation_cluster, intra_distance, intra_number = {}, {}, {}
-        for c in range(self.number):
-            assignation_cluster[c] = (components == c).reshape((-1,1))
-            intra_distance[c] = np.matmul(kernel, assignation_cluster[c])
-            intra_number[c] = np.sum(assignation_cluster[c])
-
-        # Assign each unassigned components
-        constraint = self.constraint
-        if issparse(constraint):
-            constraint = constraint.todense()
-
-        # Merge components respecting constraint until # = k
-        for i in range(self.k, self.number):
-            # Computes distances to all other cluster 
-            # We ignore the last part which depends on the intravariance of the cluster i
-            distance = [float(np.dot(assignation_cluster[c].T, intra_distance[c])/(intra_number[c]**2) 
-                - 2 * np.dot(assignation_cluster[i].T, intra_distance[c])/(intra_number[c] * intra_number[i]))
-                for c in range(self.k)]
-
-            # Closest verifying constraint
-            order = np.argsort(distance)
-
-            # If no constraint is positive => Too much constraint
-            broken_constraint = constraint[:, assignation_cluster[i].flatten()]
-            closest = min(order, key=lambda o: np.sum(broken_constraint[(components == o),:] < 0))
-            components[assignation_cluster[i].flatten()] = closest
-
-            # Update assignation closest
-            assignation_cluster[closest] += assignation_cluster[i]
-            intra_distance[closest] += intra_distance[i]
-            intra_number[closest] += intra_number[i]
-
-        return components
 
     def random_initialization(self):
         """
